@@ -1,4 +1,5 @@
 import sys
+from datetime import datetime
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -42,6 +43,10 @@ else:
 if end<start:
     start = int(sys.argv[2])
     end = int(sys.argv[1])
+
+# Display message to console:
+print('starting to scrape for account numbers '+str(start)+' to '+str(end)+' at '+datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
+
 
 ##################
 # Open webdriver #
@@ -102,6 +107,8 @@ output = pandas.DataFrame(results, columns=['parcelID', 'accountNo',
     'fuel', 'foundation', 'externalWall', 'fireplaces', 'halfBaths', 'fullBaths',
     'bedrooms', 'totalSqFt'])
 
+print('Found data for '+str(len(results))+' out of '+str(end-start+1)+' records.')
+
 ################################################################################
 # Format values/types in DataFrame so will be correct when written to database #
 ################################################################################
@@ -125,6 +132,8 @@ output.set_index('accountNo', inplace=True)
 #######################################
 # Write to a mysql database and table #
 #######################################
+print('Writing '+str(len(results))+' records to mysql at '+datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
+
 dbName = 'mecklenburgNC'
 cnxHost = 'localhost'
 cnxPort = 3306
@@ -135,3 +144,5 @@ engine = create_engine('mysql+mysqlconnector://'+cnxUser+':'+cnxPasswd+'@'+cnxHo
 with engine.connect() as conn, conn.begin():
     output.to_sql('scraped', engine, if_exists='append', chunksize=1000)
 
+
+print('Finished at '+datetime.now().strftime("%m/%d/%Y %H:%M:%S"))
